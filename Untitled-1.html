@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CampusCloset - Marketplace Barang Bekas Berkualitas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 for modern alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Leaflet JS for Maps -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Config and Styles -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#f59e0b', // Amber 500
+                        secondary: '#1e40af', // Blue 800 (Unsoed colors vibe)
+                        whatsapp: '#25D366'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        
+        /* Map container */
+        #map { height: 300px; width: 100%; border-radius: 0.5rem; z-index: 10; }
+        
+        /* Image slider transitions */
+        .slide-fade {
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased font-sans flex flex-col min-h-screen selection:bg-primary selection:text-white">
+
+    <nav class="glass shadow-sm sticky top-0 z-50 border-b border-slate-200/60">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center gap-2">
+                        <i class="fa-solid fa-recycle text-primary text-2xl"></i>
+                        <span class="font-bold text-xl text-secondary tracking-tight">Campus<span class="text-primary">Closet</span></span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="btn-seller-mode" class="text-slate-500 hover:text-primary transition-colors px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield"></i> <span id="seller-mode-text" class="hidden sm:inline">Masuk Penjual</span>
+                    </button>
+                    <button id="btn-add-product" class="bg-primary/10 text-primary hover:bg-primary/20 transition-colors px-4 py-2 rounded-xl text-sm font-bold hidden items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Jual Barang
+                    </button>
+                    <button id="cart-button" class="relative p-2 text-slate-600 hover:text-primary transition-colors">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                        <span id="cart-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-red-500 rounded-full hidden">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Hero Section -->
+        <div class="bg-gradient-to-br from-secondary to-blue-700 rounded-3xl p-8 md:p-12 mb-12 text-white shadow-2xl relative overflow-hidden group">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
+            <div class="relative z-10 md:w-2/3">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-800/50 text-blue-100 text-sm font-semibold mb-4 border border-blue-600/50 backdrop-blur-sm">🌿 Eco-friendly Campus</span>
+                <h1 class="text-4xl md:text-6xl font-extrabold mb-4 leading-tight tracking-tight">Temukan Barang <span class="text-primary">Preloved</span> Favoritmu!</h1>
+                <p class="text-blue-100 mb-8 text-lg md:text-xl font-light">Dari mahasiswa untuk mahasiswa. Beli lebih hemat, jual lebih cepat di lingkungan sekitar kampus Unsoed.</p>
+                <button onclick="document.getElementById('products-section').scrollIntoView()" class="bg-primary hover:bg-amber-500 text-slate-900 font-bold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-primary/50 hover:-translate-y-1 flex items-center gap-2">
+                    Mulai Belanja <i class="fa-solid fa-arrow-down text-sm"></i>
+                </button>
+            </div>
+            <i class="fa-solid fa-store absolute -right-10 -bottom-10 text-[12rem] text-white opacity-5 transform group-hover:scale-110 group-hover:rotate-6 transition-transform duration-700"></i>
+        </div>
+
+        <section id="add-product-section" class="mb-12 hidden bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-slate-100 transition-all duration-300 relative overflow-hidden">
+            <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+                    <div class="bg-primary/10 p-2 rounded-lg text-primary"><i class="fa-solid fa-box-open"></i></div>
+                    Tambah Barang Jualan
+                </h2>
+                <button id="close-add-product" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="product-form" class="space-y-6">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Image Inputs (File Upload) -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-slate-700">Foto Produk (Maksimal 5)</label>
+                        <p class="text-xs text-slate-500 mb-2">Unggah foto asli barang Anda untuk menarik pembeli.</p>
+                        
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:border-primary hover:bg-amber-50/50 transition-all duration-300 cursor-pointer bg-slate-50 group" onclick="document.getElementById('file-upload').click()">
+                            <div class="space-y-1 text-center">
+                                <i class="fa-solid fa-cloud-arrow-up text-4xl text-slate-400 group-hover:text-primary transition-colors"></i>
+                                <div class="flex text-sm text-slate-600 justify-center mt-2">
+                                    <span class="relative cursor-pointer bg-transparent rounded-md font-medium text-primary hover:text-amber-600 focus-within:outline-none">
+                                        <span>Klik untuk Unggah Foto</span>
+                                        <input id="file-upload" name="file-upload" type="file" class="sr-only" multiple accept="image/png, image/jpeg, image/jpg">
+                                    </span>
+                                </div>
+                                <p class="text-xs text-slate-500">PNG, JPG, JPEG (Max 5 file)</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Image Preview Container -->
+                        <div id="image-preview-container" class="flex flex-wrap gap-2 mt-3"></div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="productName" class="block text-sm font-semibold text-slate-700">Nama Barang</label>
+                            <input type="text" id="productName" required placeholder="Contoh: Buku Kalkulus Edisi 9" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 border p-3 transition-all">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="productPrice" class="block text-sm font-semibold text-slate-700">Harga (Rp)</label>
+                                <input type="number" id="productPrice" required placeholder="Contoh: 50000" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 border p-3 transition-all">
+                            </div>
+                            <div>
+                                <label for="productStock" class="block text-sm font-semibold text-slate-700">Stok Barang</label>
+                                <input type="number" id="productStock" required min="1" placeholder="Contoh: 1" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 border p-3 transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="productDesc" class="block text-sm font-semibold text-slate-700">Deskripsi Barang</label>
+                            <textarea id="productDesc" rows="4" required placeholder="Kondisi 90%, ada coretan sedikit di halaman depan..." class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50 border p-3 transition-all"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-6 border-t border-slate-100">
+                    <button type="submit" class="bg-secondary hover:bg-blue-900 text-white font-medium py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 hover:-translate-y-0.5">
+                        <i class="fa-solid fa-paper-plane"></i> Posting Barang
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="products-section">
+            <h2 class="text-2xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-fire text-red-500"></i> Rekomendasi Terkini
+            </h2>
+            
+            <!-- Product Grid -->
+            <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Products will be injected here by JS -->
+            </div>
+            
+            <!-- Empty State for Grid -->
+            <div id="empty-grid-state" class="hidden text-center py-12 bg-white rounded-xl shadow-sm border border-slate-100">
+                <i class="fa-solid fa-box-open text-6xl text-slate-300 mb-4"></i>
+                <h3 class="text-lg font-medium text-slate-600">Belum ada barang yang dijual.</h3>
+                <p class="text-slate-500">Jadilah yang pertama menjual barang preloved Anda!</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-300 py-8 border-t border-slate-800 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="mb-4 md:mb-0 text-center md:text-left">
+                <span class="font-bold text-xl text-white tracking-tight">Campus<span class="text-primary">Closet</span></span>
+                <p class="text-sm mt-1 opacity-75">Platform jual beli barang bekas terpercaya mahasiswa.</p>
+            </div>
+            <div class="flex space-x-4 text-sm">
+                <a href="#" class="hover:text-white transition-colors">Tentang Kami</a>
+                <a href="#" class="hover:text-white transition-colors">Syarat & Ketentuan</a>
+                <a href="#" class="hover:text-white transition-colors">Privasi</a>
+            </div>
+        </div>
+        <div class="text-center text-xs mt-6 opacity-50">
+            &copy; 2026 CampusCloset. All rights reserved.
+        </div>
+    </footer>
+
+    <a href="https://wa.me/6287836062070?text=Halo%20Admin%20CampusCloset,%20saya%20butuh%20bantuan." target="_blank" rel="noopener noreferrer" 
+       class="fixed bottom-6 right-6 bg-whatsapp text-white p-4 rounded-full shadow-xl hover:bg-green-600 transition-transform transform hover:scale-110 z-40 flex items-center justify-center group">
+        <i class="fa-brands fa-whatsapp text-3xl"></i>
+        <span class="absolute right-16 bg-white text-slate-700 text-sm font-medium py-1 px-3 rounded-lg shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-100">
+            Hubungi CS
+        </span>
+    </a>
+
+    <div id="cart-overlay" class="fixed inset-0 bg-slate-900 bg-opacity-50 z-50 hidden transition-opacity opacity-0 backdrop-blur-sm">
+        <div class="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl flex flex-col transform translate-x-full transition-transform duration-300" id="cart-panel">
+            
+            <!-- Cart Header -->
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-basket-shopping text-primary"></i> Keranjang Anda
+                </h2>
+                <button id="close-cart" class="text-slate-400 hover:text-slate-600 p-2">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Cart Items -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="cart-items-container">
+                <!-- Cart items injected here -->
+            </div>
+
+            <!-- Cart Empty State -->
+            <div id="cart-empty-state" class="flex-1 flex flex-col items-center justify-center text-slate-500 hidden">
+                <i class="fa-solid fa-cart-arrow-down text-5xl mb-4 text-slate-300"></i>
+                <p>Keranjang masih kosong</p>
+            </div>
+
+            <!-- Cart Footer (Checkout Form) -->
+            <div class="border-t border-slate-200 p-4 bg-white" id="cart-footer">
+                <div class="flex justify-between items-center mb-4 text-lg font-bold">
+                    <span>Total:</span>
+                    <span id="cart-total-price" class="text-primary">Rp 0</span>
+                </div>
+                
+                <button id="btn-proceed-checkout" class="w-full bg-secondary hover:bg-blue-900 text-white font-medium py-3 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                    Lanjut ke Pengiriman <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="checkout-modal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <h2 class="text-xl font-bold text-slate-800"><i class="fa-solid fa-truck-fast text-secondary mr-2"></i>Detail Pengiriman</h2>
+                <button id="close-checkout" class="text-slate-400 hover:text-red-500 p-2">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <form id="checkout-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nama Penerima</label>
+                            <input type="text" id="checkout-name" required placeholder="Nama Lengkap" class="w-full rounded-md border-slate-300 border p-2.5 text-sm focus:ring-primary focus:border-primary outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Nomor WhatsApp</label>
+                            <div class="flex">
+                                <span class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">
+                                    +62
+                                </span>
+                                <input type="tel" id="checkout-wa" required placeholder="81234567890" class="flex-1 block w-full rounded-none rounded-r-md border-slate-300 border p-2.5 text-sm focus:ring-primary focus:border-primary outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Pilih Lokasi di Peta</label>
+                        <p class="text-xs text-slate-500 mb-2">Geser pin ke lokasi pengiriman Anda di area Purwokerto/Unsoed.</p>
+                        <div id="map" class="border border-slate-300 relative">
+                             <div id="map-loading" class="absolute inset-0 bg-slate-100 flex items-center justify-center z-[1000] rounded-lg">
+                                <i class="fa-solid fa-spinner fa-spin text-primary text-3xl"></i>
+                             </div>
+                        </div>
+                        <input type="hidden" id="checkout-lat">
+                        <input type="hidden" id="checkout-lng">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Alamat Lengkap</label>
+                        <textarea id="checkout-address" required rows="2" placeholder="Nama Jalan, RT/RW, Kost/Perumahan, Patokan..." class="w-full rounded-md border-slate-300 border p-2.5 text-sm focus:ring-primary focus:border-primary outline-none transition-all"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Detail Lainnya (Opsional)</label>
+                        <textarea id="checkout-details" rows="2" placeholder="Titip di pos satpam, pagar warna hitam, dll..." class="w-full rounded-md border-slate-300 border p-2.5 text-sm focus:ring-primary focus:border-primary outline-none transition-all"></textarea>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100 flex justify-end gap-3">
+                        <button type="button" id="btn-cancel-checkout" class="px-4 py-2 bg-white border border-slate-300 rounded-md text-slate-700 hover:bg-slate-50 font-medium transition-colors">
+                            Kembali
+                        </button>
+                        <button type="submit" class="px-6 py-2 bg-whatsapp hover:bg-green-600 text-white rounded-md font-medium flex items-center gap-2 transition-colors shadow-sm">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> Kirim Pesanan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="fixed inset-0 bg-slate-900/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col md:flex-row transform scale-95 transition-transform duration-300" id="product-detail-content">
+            
+            <!-- Left: Image Slider -->
+            <div class="w-full md:w-1/2 h-64 md:h-auto relative bg-slate-100" id="detail-image-container">
+                <!-- Images injected via JS -->
+            </div>
+            
+            <!-- Right: Details -->
+            <div class="w-full md:w-1/2 flex flex-col max-h-full">
+                <div class="flex items-center justify-between p-4 border-b border-slate-100">
+                    <h2 class="text-lg font-bold text-slate-800">Detail Barang</h2>
+                    <button onclick="closeProductDetail()" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-2 rounded-full transition-colors">
+                        <i class="fa-solid fa-xmark text-xl w-5 h-5 flex items-center justify-center"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto flex-grow">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 id="detail-name" class="text-2xl font-bold text-slate-800 leading-tight"></h3>
+                        <span id="detail-stock-badge" class="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full border border-slate-200 whitespace-nowrap ml-4"></span>
+                    </div>
+                    <p id="detail-price" class="text-3xl font-extrabold text-primary mb-6"></p>
+                    
+                    <div class="mb-6">
+                        <h4 class="text-sm font-bold text-slate-800 mb-2 uppercase tracking-wider">Deskripsi Lengkap</h4>
+                        <p id="detail-desc" class="text-slate-600 text-sm leading-relaxed whitespace-pre-wrap bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
+                    </div>
+                </div>
+
+                <div class="p-4 border-t border-slate-100 bg-slate-50" id="detail-actions">
+                    <!-- Actions injected via JS based on stock -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="edit-product-modal" class="fixed inset-0 bg-slate-900/80 z-[70] hidden flex items-center justify-center p-4 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto transform scale-95 transition-transform duration-300" id="edit-product-content">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white/90 backdrop-blur z-10">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center gap-3">
+                    <div class="bg-blue-100 p-2 rounded-lg text-secondary"><i class="fa-solid fa-pen-to-square"></i></div>
+                    Edit Barang Jualan
+                </h2>
+                <button onclick="closeEditModal()" class="text-slate-400 hover:text-red-500 hover:bg-red-50 p-2 rounded-full transition-colors">
+                    <i class="fa-solid fa-xmark text-xl w-5 h-5 flex items-center justify-center"></i>
+                </button>
+            </div>
+            
+            <form id="edit-product-form" class="p-6 space-y-6">
+                <input type="hidden" id="edit-productId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Image Inputs -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-semibold text-slate-700">Foto Produk (Maksimal 5)</label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-slate-300 border-dashed rounded-xl relative hover:border-secondary hover:bg-blue-50/50 transition-all duration-300 cursor-pointer bg-slate-50 group" onclick="document.getElementById('edit-file-upload').click()">
+                            <div class="space-y-1 text-center">
+                                <i class="fa-solid fa-image text-4xl text-slate-400 group-hover:text-secondary transition-colors"></i>
+                                <div class="flex text-sm text-slate-600 justify-center mt-2">
+                                    <span class="relative cursor-pointer bg-transparent rounded-md font-medium text-secondary hover:text-blue-800 focus-within:outline-none">
+                                        <span>Klik untuk Tambah Foto</span>
+                                        <input id="edit-file-upload" type="file" class="sr-only" multiple accept="image/png, image/jpeg, image/jpg">
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="edit-image-preview-container" class="flex flex-wrap gap-2 mt-3"></div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="space-y-4">
+                        <div>
+                            <label for="edit-productName" class="block text-sm font-semibold text-slate-700">Nama Barang</label>
+                            <input type="text" id="edit-productName" required class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 border p-3 transition-all">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="edit-productPrice" class="block text-sm font-semibold text-slate-700">Harga (Rp)</label>
+                                <input type="number" id="edit-productPrice" required class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 border p-3 transition-all">
+                            </div>
+                            <div>
+                                <label for="edit-productStock" class="block text-sm font-semibold text-slate-700">Stok Barang</label>
+                                <input type="number" id="edit-productStock" required min="0" class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 border p-3 transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="edit-productDesc" class="block text-sm font-semibold text-slate-700">Deskripsi Barang</label>
+                            <textarea id="edit-productDesc" rows="5" required class="mt-1 block w-full rounded-xl border-slate-300 shadow-sm focus:border-secondary focus:ring focus:ring-secondary focus:ring-opacity-50 border p-3 transition-all"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-6 border-t border-slate-100 gap-3">
+                    <button type="button" onclick="closeEditModal()" class="px-6 py-3 bg-white border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 font-medium transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" class="bg-secondary hover:bg-blue-900 text-white font-medium py-3 px-8 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center gap-2 hover:-translate-y-0.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- State Management ---
+        const STORE_WA_NUMBER = "6287836062070"; // Target WA Number
+        const SELLER_PASSCODE = "102286";
+        let currentRole = 'buyer'; // 'buyer' or 'seller'
+        let products = [];
+        let cart = [];
+        let uploadedImages = []; // Store base64 images for upload
+        let editingUploadedImages = []; // Store images during edit mode
+        let map = null; // Leaflet map instance
+        let marker = null; // Leaflet marker instance
+        
+        // Initial mock data based on Unsoed context
+        const initialProducts = [
+            {
+                id: 1,
+                name: "Kalkulus Edisi 9 (Purcell)",
+                price: 75000,
+                stock: 1,
+                desc: "Buku wajib anak MIPA/Teknik. Kondisi 85%, ada stabilo di beberapa bab awal. Halaman lengkap tidak ada yang sobek.",
+                images: ["https://placehold.co/600x400/1e40af/ffffff?text=Kalkulus+Edisi+9", "https://placehold.co/600x400/f59e0b/ffffff?text=Kondisi+Dalam"]
+            },
+            {
+                id: 2,
+                name: "Kipas Angin Miyako Duduk",
+                price: 80000,
+                stock: 1,
+                desc: "Cocok buat anak kost. Angin kencang, putaran normal, tombol masih berfungsi semua. Minus kotor debu sedikit.",
+                images: ["https://placehold.co/600x400/64748b/ffffff?text=Kipas+Angin+Miyako"]
+            },
+            {
+                id: 3,
+                name: "Rak Sepatu Plastik 4 Susun",
+                price: 25000,
+                stock: 2,
+                desc: "Warna biru. Kondisi utuh, tidak ada patah. Baru dipakai 1 semester. Alasan jual: mau ganti yang kayu.",
+                images: ["https://placehold.co/600x400/3b82f6/ffffff?text=Rak+Sepatu+Biru"]
+            },
+            {
+                id: 4,
+                name: "Helm Bogo Retro Cream",
+                price: 90000,
+                stock: 0, // Mocked as sold out
+                desc: "Kaca cembung gelap. Busa masih tebal dan wangi. Bodi lecet pemakaian wajar parkiran fisip.",
+                images: ["https://placehold.co/600x400/fef3c7/1e293b?text=Helm+Bogo+Cream", "https://placehold.co/600x400/e2e8f0/1e293b?text=Lecet+Sedikit"]
+            }
+        ];
+
+        // Utility: Format Rupiah
+        const formatRupiah = (number) => {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
+        };
+
+        // --- DOM Elements ---
+        const productGrid = document.getElementById('product-grid');
+        const emptyGridState = document.getElementById('empty-grid-state');
+        const cartBadge = document.getElementById('cart-badge');
+        const cartOverlay = document.getElementById('cart-overlay');
+        const cartPanel = document.getElementById('cart-panel');
+        const cartItemsContainer = document.getElementById('cart-items-container');
+        const cartEmptyState = document.getElementById('cart-empty-state');
+        const cartFooter = document.getElementById('cart-footer');
+        const cartTotalPriceEl = document.getElementById('cart-total-price');
+        const addProductSection = document.getElementById('add-product-section');
+        const checkoutModal = document.getElementById('checkout-modal');
+        
+        // Detail & Edit Modals
+        const detailModal = document.getElementById('product-detail-modal');
+        const detailContent = document.getElementById('product-detail-content');
+        const editModal = document.getElementById('edit-product-modal');
+        const editContent = document.getElementById('edit-product-content');
+        const editImagePreviewContainer = document.getElementById('edit-image-preview-container');
+        const editFileUploadEl = document.getElementById('edit-file-upload');
+        const btnSellerMode = document.getElementById('btn-seller-mode');
+        const sellerModeText = document.getElementById('seller-mode-text');
+
+        // --- Role Management (Buyer / Seller) ---
+        function toggleRole() {
+            if (currentRole === 'buyer') {
+                Swal.fire({
+                    title: 'Verifikasi Penjual',
+                    input: 'password',
+                    inputLabel: 'Masukkan Kode Akses',
+                    inputPlaceholder: 'Kode 6 digit',
+                    showCancelButton: true,
+                    confirmButtonText: 'Masuk',
+                    cancelButtonText: 'Batal',
+                    confirmButtonColor: '#f59e0b',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        if (result.value === SELLER_PASSCODE) {
+                            currentRole = 'seller';
+                            Swal.fire({
+                                toast: true, position: 'top-end', icon: 'success', 
+                                title: 'Berhasil masuk mode Penjual', showConfirmButton: false, timer: 1500
+                            });
+                            updateRoleUI();
+                        } else {
+                            Swal.fire('Akses Ditolak', 'Kode verifikasi salah.', 'error');
+                        }
+                    }
+                });
+            } else {
+                currentRole = 'buyer';
+                Swal.fire({
+                    toast: true, position: 'top-end', icon: 'info', 
+                    title: 'Kembali ke mode Pembeli', showConfirmButton: false, timer: 1500
+                });
+                updateRoleUI();
+            }
+        }
+
+        function updateRoleUI() {
+            const btnAddProduct = document.getElementById('btn-add-product');
+            const addProductSection = document.getElementById('add-product-section');
+
+            if (currentRole === 'seller') {
+                btnAddProduct.classList.remove('hidden');
+                btnAddProduct.classList.add('flex');
+                sellerModeText.textContent = 'Keluar Penjual';
+                btnSellerMode.classList.add('text-primary', 'bg-primary/10');
+            } else {
+                btnAddProduct.classList.add('hidden');
+                btnAddProduct.classList.remove('flex');
+                sellerModeText.textContent = 'Masuk Penjual';
+                btnSellerMode.classList.remove('text-primary', 'bg-primary/10');
+                addProductSection.classList.add('hidden'); // Close add product form if open
+            }
+            renderProducts(); // Re-render to show/hide seller buttons on products
+        }
+
+        btnSellerMode.addEventListener('click', toggleRole);
+
+        const fileUploadEl = document.getElementById('file-upload');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+
+        fileUploadEl.addEventListener('change', (e) => {
+            handleFileUpload(e, uploadedImages, renderImagePreviews, 5);
+            fileUploadEl.value = '';
+        });
+
+        editFileUploadEl.addEventListener('change', (e) => {
+            handleFileUpload(e, editingUploadedImages, renderEditImagePreviews, 5);
+            editFileUploadEl.value = '';
+        });
+
+        function handleFileUpload(e, imageArray, renderFn, maxLimit) {
+            const files = Array.from(e.target.files);
+            if (imageArray.length + files.length > maxLimit) {
+                Swal.fire(`Maksimal ${maxLimit} Foto`, `Anda hanya dapat mengunggah maksimal ${maxLimit} foto.`, 'warning');
+                return;
+            }
+            files.forEach(file => {
+                if (imageArray.length >= maxLimit) return;
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    imageArray.push(event.target.result);
+                    renderFn();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderImagePreviews() {
+            renderGenericImagePreviews(uploadedImages, imagePreviewContainer, 'removeUploadedImage');
+        }
+
+        function renderEditImagePreviews() {
+            renderGenericImagePreviews(editingUploadedImages, editImagePreviewContainer, 'removeEditUploadedImage');
+        }
+
+        function renderGenericImagePreviews(imageArray, container, removeFnName) {
+            container.innerHTML = '';
+            imageArray.forEach((imgSrc, index) => {
+                const div = document.createElement('div');
+                div.className = 'relative w-16 h-16 rounded-xl border border-slate-200 overflow-hidden group shadow-sm';
+                div.innerHTML = `
+                    <img src="${imgSrc}" class="w-full h-full object-cover">
+                    <button type="button" onclick="${removeFnName}(event, ${index})" class="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        window.removeUploadedImage = (event, index) => {
+            event.stopPropagation();
+            uploadedImages.splice(index, 1);
+            renderImagePreviews();
+        };
+
+        window.removeEditUploadedImage = (event, index) => {
+            event.stopPropagation();
+            editingUploadedImages.splice(index, 1);
+            renderEditImagePreviews();
+        };
+
+
+        function renderProducts() {
+            productGrid.innerHTML = '';
+            
+            if (products.length === 0) {
+                productGrid.classList.add('hidden');
+                emptyGridState.classList.remove('hidden');
+                return;
+            }
+
+            productGrid.classList.remove('hidden');
+            emptyGridState.classList.add('hidden');
+
+            products.forEach(product => {
+                const isMultipleImages = product.images.length > 1;
+                const isSoldOut = product.stock <= 0;
+                
+                // Create product card
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 border border-slate-100 overflow-hidden flex flex-col relative group ${isSoldOut ? 'opacity-80' : ''}`;
+                
+                // Stock Badge
+                const stockBadge = isSoldOut 
+                    ? `<div class="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-md z-30 tracking-wide uppercase">Sold Out</div>`
+                    : `<div class="absolute top-3 right-3 bg-slate-900/80 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-md z-30 backdrop-blur-md">Sisa: ${product.stock}</div>`;
+
+                // Image container with slider logic if multiple
+                let imageHTML = `<div class="relative h-56 w-full bg-slate-200 overflow-hidden cursor-pointer" onclick="openProductDetail(${product.id})">
+                                 ${stockBadge}`;
+                
+                // Sold Out Overlay
+                if (isSoldOut) {
+                    imageHTML += `<div class="absolute inset-0 bg-slate-900/30 z-20 flex items-center justify-center backdrop-grayscale transition-all duration-300"></div>`;
+                }
+
+                if (isMultipleImages) {
+                    // Setup slider structure
+                    imageHTML += `
+                        <div class="relative w-full h-full" id="slider-${product.id}">
+                            ${product.images.map((img, idx) => `
+                                <img src="${img}" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Gambar+Rusak'" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}" data-index="${idx}" alt="${product.name}">
+                            `).join('')}
+                        </div>
+                        <div class="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-20">
+                            ${product.images.map((_, idx) => `
+                                <div class="h-1.5 w-1.5 rounded-full ${idx === 0 ? 'bg-primary' : 'bg-white/70'} slider-dot-${product.id}" data-index="${idx}"></div>
+                            `).join('')}
+                        </div>
+                        <button onclick="prevImage(${product.id}, ${product.images.length})" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <i class="fa-solid fa-chevron-left text-xs"></i>
+                        </button>
+                        <button onclick="nextImage(${product.id}, ${product.images.length})" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    `;
+                } else {
+                    imageHTML += `<img src="${product.images[0]}" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Gambar+Rusak'" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="${product.name}">`;
+                }
+                
+                // Overlay for "Lihat Detail" on hover
+                imageHTML += `<div class="absolute inset-0 bg-black/40 z-10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isSoldOut ? 'hidden' : ''}">
+                                <span class="bg-white text-slate-900 px-4 py-2 rounded-full font-semibold text-sm shadow-lg flex items-center gap-2 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300">
+                                    <i class="fa-solid fa-eye"></i> Lihat Detail
+                                </span>
+                              </div>`;
+
+                imageHTML += `</div>`;
+
+                const productWAUrl = generateNegoWAUrl(product);
+
+                card.innerHTML = `
+                    ${imageHTML}
+                    <div class="p-5 flex flex-col flex-grow">
+                        <h3 class="font-bold text-lg text-slate-800 line-clamp-2 mb-1 cursor-pointer hover:text-primary transition-colors" onclick="openProductDetail(${product.id})">${product.name}</h3>
+                        <p class="text-primary font-extrabold text-xl mb-3">${formatRupiah(product.price)}</p>
+                        <p class="text-slate-500 text-sm mb-2 line-clamp-2">${product.desc}</p>
+                        <button onclick="openProductDetail(${product.id})" class="text-xs text-secondary font-semibold text-left hover:underline mb-4 inline-block w-max">Baca selengkapnya...</button>
+                        
+                        <div class="flex flex-col gap-2 mt-auto">
+                            <!-- Buyer Actions -->
+                            <button onclick="addToCart(${product.id})" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-200" ${isSoldOut ? 'disabled' : ''}>
+                                <i class="fa-solid fa-cart-plus"></i> ${isSoldOut ? 'Stok Habis' : 'Ke Keranjang'}
+                            </button>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="buyDirectly(${product.id})" class="w-full py-2.5 bg-secondary hover:bg-blue-800 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed" ${isSoldOut ? 'disabled' : ''}>
+                                    Beli Langsung
+                                </button>
+                                <a href="${isSoldOut ? '#' : productWAUrl}" ${isSoldOut ? '' : 'target="_blank" rel="noopener noreferrer"'} class="w-full py-2.5 bg-whatsapp hover:bg-green-600 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center gap-1 shadow-sm hover:shadow-md ${isSoldOut ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''}">
+                                    <i class="fa-brands fa-whatsapp"></i> Nego
+                                </a>
+                            </div>
+                            
+                            <!-- Seller Actions -->
+                            ${currentRole === 'seller' ? `
+                            <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-3 gap-1.5">
+                                <button onclick="openEditModal(${product.id})" class="text-[11px] py-2 bg-blue-50 text-secondary hover:bg-blue-100 rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-semibold">
+                                    <i class="fa-solid fa-pen-to-square text-sm"></i> Edit
+                                </button>
+                                <button onclick="cancelSale(${product.id})" class="text-[11px] py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-semibold">
+                                    <i class="fa-solid fa-trash-can text-sm"></i> Hapus
+                                </button>
+                                <button onclick="markSoldOut(${product.id})" class="text-[11px] py-2 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors flex flex-col items-center justify-center gap-1 font-semibold disabled:opacity-50 disabled:cursor-not-allowed" ${isSoldOut ? 'disabled' : ''}>
+                                    <i class="fa-solid fa-ban text-sm"></i> Habis
+                                </button>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                productGrid.appendChild(card);
+            });
+        }
+
+        // --- Detail Modal Functions ---
+        window.openProductDetail = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const isSoldOut = product.stock <= 0;
+            const isMultipleImages = product.images.length > 1;
+
+            // Set content
+            document.getElementById('detail-name').textContent = product.name;
+            document.getElementById('detail-price').textContent = formatRupiah(product.price);
+            document.getElementById('detail-desc').textContent = product.desc;
+            
+            const badge = document.getElementById('detail-stock-badge');
+            if (isSoldOut) {
+                badge.textContent = 'SOLD OUT';
+                badge.className = 'px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full border border-red-200 whitespace-nowrap ml-4';
+            } else {
+                badge.textContent = `Sisa Stok: ${product.stock}`;
+                badge.className = 'px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200 whitespace-nowrap ml-4';
+            }
+
+            // Setup Detail Image Slider
+            const imgContainer = document.getElementById('detail-image-container');
+            let imageHTML = '';
+            
+            if (isMultipleImages) {
+                imageHTML += `
+                    <div class="relative w-full h-full" id="detail-slider-${product.id}">
+                        ${product.images.map((img, idx) => `
+                            <img src="${img}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 ${idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'}" data-index="${idx}" alt="${product.name}">
+                        `).join('')}
+                    </div>
+                    <div class="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-20">
+                        ${product.images.map((_, idx) => `
+                            <div class="h-2 w-2 rounded-full cursor-pointer transition-colors ${idx === 0 ? 'bg-primary scale-125' : 'bg-white/70 hover:bg-white'} detail-slider-dot" onclick="updateDetailSlider(${product.id}, ${idx}, ${product.images.length})"></div>
+                        `).join('')}
+                    </div>
+                    <button onclick="prevDetailImage(${product.id}, ${product.images.length})" class="absolute left-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all z-20 backdrop-blur-sm">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="nextDetailImage(${product.id}, ${product.images.length})" class="absolute right-4 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full w-10 h-10 flex items-center justify-center transition-all z-20 backdrop-blur-sm">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                `;
+                currentSlideIndexes[`detail-${product.id}`] = 0;
+            } else {
+                imageHTML = `<img src="${product.images[0]}" class="w-full h-full object-cover">`;
+            }
+            imgContainer.innerHTML = imageHTML;
+
+            // Setup Actions
+            const actionsContainer = document.getElementById('detail-actions');
+            if (isSoldOut) {
+                actionsContainer.innerHTML = `<div class="text-center text-red-500 font-bold py-3 bg-red-50 rounded-xl border border-red-100">Maaf, barang ini sudah terjual habis.</div>`;
+            } else {
+                const productWAUrl = generateNegoWAUrl(product);
+                actionsContainer.innerHTML = `
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="addToCart(${product.id}); closeProductDetail();" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl transition-colors border border-slate-200 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-cart-plus"></i> Keranjang
+                        </button>
+                        <button onclick="buyDirectly(${product.id})" class="flex-1 py-3 bg-secondary hover:bg-blue-800 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
+                            Beli Langsung
+                        </button>
+                        <a href="${productWAUrl}" target="_blank" class="flex-1 py-3 bg-whatsapp hover:bg-green-600 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 shadow-md">
+                            <i class="fa-brands fa-whatsapp text-lg"></i> Nego
+                        </a>
+                    </div>
+                `;
+            }
+
+            // Show Modal
+            detailModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                detailModal.classList.remove('opacity-0');
+                detailContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        window.closeProductDetail = () => {
+            detailModal.classList.add('opacity-0');
+            detailContent.classList.add('scale-95');
+            setTimeout(() => {
+                detailModal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        };
+
+        // Detail Slider Logic
+        window.nextDetailImage = (productId, total) => {
+            const id = `detail-${productId}`;
+            const nextIndex = (currentSlideIndexes[id] + 1) % total;
+            updateDetailSlider(productId, nextIndex, total);
+        };
+        window.prevDetailImage = (productId, total) => {
+            const id = `detail-${productId}`;
+            const prevIndex = (currentSlideIndexes[id] - 1 + total) % total;
+            updateDetailSlider(productId, prevIndex, total);
+        };
+        window.updateDetailSlider = (productId, newIndex, total) => {
+            const id = `detail-${productId}`;
+            currentSlideIndexes[id] = newIndex;
+            const container = document.getElementById(`detail-slider-${productId}`);
+            const images = container.querySelectorAll('img');
+            const dots = document.getElementById('detail-image-container').querySelectorAll('.detail-slider-dot');
+
+            images.forEach((img, idx) => {
+                if (idx === newIndex) {
+                    img.classList.replace('opacity-0', 'opacity-100');
+                    img.classList.replace('z-0', 'z-10');
+                } else {
+                    img.classList.replace('opacity-100', 'opacity-0');
+                    img.classList.replace('z-10', 'z-0');
+                }
+            });
+            dots.forEach((dot, idx) => {
+                if (idx === newIndex) {
+                    dot.classList.replace('bg-white/70', 'bg-primary');
+                    dot.classList.add('scale-125');
+                    dot.classList.remove('hover:bg-white');
+                } else {
+                    dot.classList.replace('bg-primary', 'bg-white/70');
+                    dot.classList.remove('scale-125');
+                    dot.classList.add('hover:bg-white');
+                }
+            });
+        };
+
+        // --- Edit Modal Functions ---
+        window.openEditModal = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            // Populate fields
+            document.getElementById('edit-productId').value = product.id;
+            document.getElementById('edit-productName').value = product.name;
+            document.getElementById('edit-productPrice').value = product.price;
+            document.getElementById('edit-productStock').value = product.stock;
+            document.getElementById('edit-productDesc').value = product.desc;
+            
+            // Populate images
+            editingUploadedImages = [...product.images];
+            renderEditImagePreviews();
+
+            // Show modal
+            editModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                editModal.classList.remove('opacity-0');
+                editContent.classList.remove('scale-95');
+            }, 10);
+        };
+
+        window.closeEditModal = () => {
+            editModal.classList.add('opacity-0');
+            editContent.classList.add('scale-95');
+            setTimeout(() => {
+                editModal.classList.add('hidden');
+                document.body.style.overflow = '';
+                document.getElementById('edit-product-form').reset();
+                editingUploadedImages = [];
+            }, 300);
+        };
+
+        document.getElementById('edit-product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('edit-productId').value);
+            const name = document.getElementById('edit-productName').value;
+            const price = parseInt(document.getElementById('edit-productPrice').value);
+            const stock = parseInt(document.getElementById('edit-productStock').value);
+            const desc = document.getElementById('edit-productDesc').value;
+
+            if (editingUploadedImages.length === 0) {
+                Swal.fire('Foto Diperlukan', 'Minimal barang harus memiliki 1 foto.', 'error');
+                return;
+            }
+
+            // Update product in array
+            const index = products.findIndex(p => p.id === id);
+            if (index !== -1) {
+                products[index] = {
+                    ...products[index],
+                    name, price, stock, desc, images: [...editingUploadedImages]
+                };
+
+                // Update cart if item is in cart (adjust max stock)
+                const cartItem = cart.find(c => c.id === id);
+                if (cartItem && cartItem.quantity > stock) {
+                    cartItem.quantity = stock;
+                    if(stock === 0) {
+                        cart = cart.filter(c => c.id !== id);
+                    }
+                }
+
+                renderProducts();
+                updateCartUI();
+                closeEditModal();
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'Perubahan berhasil disimpan',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            }
+        });
+
+
+        // --- Seller Action Functions ---
+        window.cancelSale = (productId) => {
+            Swal.fire({
+                title: 'Hapus Barang?',
+                text: "Barang ini akan dihapus permanen dari daftar jualan.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    products = products.filter(p => p.id !== productId);
+                    // Also remove from cart if it's there
+                    cart = cart.filter(item => item.id !== productId);
+                    
+                    renderProducts();
+                    updateCartUI();
+                    
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        title: 'Barang berhasil dihapus',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                }
+            });
+        };
+
+        window.markSoldOut = (productId) => {
+            Swal.fire({
+                title: 'Tandai Sold Out?',
+                text: "Barang tidak akan bisa dibeli lagi.",
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#f59e0b',
+                cancelButtonColor: '#94a3b8',
+                confirmButtonText: 'Ya, Tandai Habis',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const product = products.find(p => p.id === productId);
+                    if (product) {
+                        product.stock = 0;
+                        
+                        // Adjust cart if needed
+                        cart = cart.filter(item => item.id !== productId);
+                        
+                        renderProducts();
+                        updateCartUI();
+
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Status diubah ke Sold Out',
+                            showConfirmButton: false,
+                            timer: 1500
+                        });
+                    }
+                }
+            });
+        };
+        // -------------------------------
+
+        window.currentSlideIndexes = {}; // Store current index for each product slider
+
+        window.nextImage = (productId, totalImages) => {
+            if (typeof currentSlideIndexes[productId] === 'undefined') currentSlideIndexes[productId] = 0;
+            const nextIndex = (currentSlideIndexes[productId] + 1) % totalImages;
+            updateSlider(productId, nextIndex, totalImages);
+        };
+
+        window.prevImage = (productId, totalImages) => {
+            if (typeof currentSlideIndexes[productId] === 'undefined') currentSlideIndexes[productId] = 0;
+            const prevIndex = (currentSlideIndexes[productId] - 1 + totalImages) % totalImages;
+            updateSlider(productId, prevIndex, totalImages);
+        };
+
+        function updateSlider(productId, newIndex, totalImages) {
+            currentSlideIndexes[productId] = newIndex;
+            const container = document.getElementById(`slider-${productId}`);
+            const images = container.querySelectorAll('img');
+            const dots = document.querySelectorAll(`.slider-dot-${productId}`);
+
+            images.forEach((img, idx) => {
+                if (idx === newIndex) {
+                    img.classList.remove('opacity-0', 'z-0');
+                    img.classList.add('opacity-100', 'z-10');
+                } else {
+                    img.classList.remove('opacity-100', 'z-10');
+                    img.classList.add('opacity-0', 'z-0');
+                }
+            });
+
+            dots.forEach((dot, idx) => {
+                if (idx === newIndex) {
+                    dot.classList.remove('bg-white/70');
+                    dot.classList.add('bg-primary');
+                } else {
+                    dot.classList.remove('bg-primary');
+                    dot.classList.add('bg-white/70');
+                }
+            });
+        }
+
+        window.addToCart = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product || product.stock <= 0) return;
+
+            const existingItem = cart.find(item => item.id === productId);
+            
+            if (existingItem) {
+                if (existingItem.quantity < product.stock) {
+                    existingItem.quantity += 1;
+                } else {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'warning',
+                        title: 'Stok maksimum tercapai',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                    return;
+                }
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+            
+            updateCartUI();
+            
+            // Toast notification
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: 'Berhasil ditambahkan ke keranjang',
+                showConfirmButton: false,
+                timer: 1500,
+                timerProgressBar: true
+            });
+        };
+
+        window.removeFromCart = (productId) => {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartUI();
+        };
+
+        window.updateQuantity = (productId, change) => {
+            const item = cart.find(i => i.id === productId);
+            const product = products.find(p => p.id === productId);
+
+            if (item && product) {
+                const newQuantity = item.quantity + change;
+                
+                if (newQuantity <= 0) {
+                    removeFromCart(productId);
+                } else if (newQuantity > product.stock) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'warning',
+                        title: 'Melebihi stok yang tersedia',
+                        showConfirmButton: false,
+                        timer: 1500
+                    });
+                } else {
+                    item.quantity = newQuantity;
+                    updateCartUI();
+                }
+            }
+        };
+
+        function updateCartUI() {
+            // Update badge
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            if (totalItems > 0) {
+                cartBadge.textContent = totalItems;
+                cartBadge.classList.remove('hidden');
+            } else {
+                cartBadge.classList.add('hidden');
+            }
+
+            // Update cart panel content
+            cartItemsContainer.innerHTML = '';
+            
+            if (cart.length === 0) {
+                cartItemsContainer.classList.add('hidden');
+                cartEmptyState.classList.remove('hidden');
+                cartFooter.classList.add('hidden');
+            } else {
+                cartItemsContainer.classList.remove('hidden');
+                cartEmptyState.classList.add('hidden');
+                cartFooter.classList.remove('hidden');
+
+                let totalPrice = 0;
+
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.quantity;
+                    totalPrice += itemTotal;
+
+                    const cartItemEl = document.createElement('div');
+                    cartItemEl.className = 'flex gap-4 p-4 bg-white border border-slate-100 rounded-xl shadow-sm hover:shadow-md transition-shadow';
+                    cartItemEl.innerHTML = `
+                        <img src="${item.images[0]}" class="w-20 h-20 object-cover rounded-lg bg-slate-100">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800 line-clamp-2 leading-tight mb-1">${item.name}</h4>
+                                <p class="text-primary font-extrabold text-sm">${formatRupiah(item.price)}</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-2">
+                                <div class="flex items-center border border-slate-200 rounded-lg bg-slate-50">
+                                    <button onclick="updateQuantity(${item.id}, -1)" class="px-3 py-1 text-slate-600 hover:bg-slate-200 transition-colors rounded-l-lg font-bold">-</button>
+                                    <span class="px-3 text-sm font-bold w-8 text-center">${item.quantity}</span>
+                                    <button onclick="updateQuantity(${item.id}, 1)" class="px-3 py-1 text-slate-600 hover:bg-slate-200 transition-colors rounded-r-lg font-bold">+</button>
+                                </div>
+                                <button onclick="removeFromCart(${item.id})" class="text-red-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    cartItemsContainer.appendChild(cartItemEl);
+                });
+
+                cartTotalPriceEl.textContent = formatRupiah(totalPrice);
+            }
+        }
+
+        // Toggle Add Product Form
+        document.getElementById('btn-add-product').addEventListener('click', () => {
+            addProductSection.classList.remove('hidden');
+            addProductSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        document.getElementById('close-add-product').addEventListener('click', () => {
+            addProductSection.classList.add('hidden');
+        });
+
+        // Toggle Cart
+        const toggleCart = (show) => {
+            if (show) {
+                cartOverlay.classList.remove('hidden');
+                // Small delay to allow display:block to apply before animating opacity/transform
+                setTimeout(() => {
+                    cartOverlay.classList.remove('opacity-0');
+                    cartPanel.classList.remove('translate-x-full');
+                }, 10);
+            } else {
+                cartOverlay.classList.add('opacity-0');
+                cartPanel.classList.add('translate-x-full');
+                setTimeout(() => {
+                    cartOverlay.classList.add('hidden');
+                }, 300); // match duration-300
+            }
+        };
+
+        document.getElementById('cart-button').addEventListener('click', () => toggleCart(true));
+        document.getElementById('close-cart').addEventListener('click', () => toggleCart(false));
+        cartOverlay.addEventListener('click', (e) => {
+            if (e.target === cartOverlay) toggleCart(false);
+        });
+
+        // Add Product Form Submit
+        document.getElementById('product-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('productName').value;
+            const price = parseInt(document.getElementById('productPrice').value);
+            const stock = parseInt(document.getElementById('productStock').value);
+            const desc = document.getElementById('productDesc').value;
+            
+            if (uploadedImages.length === 0) {
+                Swal.fire('Foto Diperlukan', 'Minimal unggah 1 foto produk asli Anda.', 'error');
+                return;
+            }
+
+            const newProduct = {
+                id: Date.now(), 
+                name,
+                price,
+                stock,
+                desc,
+                images: [...uploadedImages]
+            };
+
+            products.unshift(newProduct); 
+            renderProducts();
+            
+            // Reset form and UI
+            e.target.reset();
+            uploadedImages = [];
+            renderImagePreviews();
+            addProductSection.classList.add('hidden');
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Barang Diposting!',
+                text: 'Barang jualan Anda telah berhasil ditambahkan ke halaman.',
+                confirmButtonColor: '#1e40af' // secondary color
+            });
+            
+            // Scroll to top of products
+            document.getElementById('products-section').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        
+        // Open Checkout from Cart
+        document.getElementById('btn-proceed-checkout').addEventListener('click', () => {
+            toggleCart(false);
+            openCheckoutModal();
+        });
+
+        function openCheckoutModal() {
+            checkoutModal.classList.remove('hidden');
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+            
+            // Initialize map if not already done, needs small delay for modal to be visible
+            setTimeout(() => {
+                initMap();
+            }, 300);
+        }
+
+        function closeCheckoutModal() {
+            checkoutModal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.getElementById('close-checkout').addEventListener('click', closeCheckoutModal);
+        document.getElementById('btn-cancel-checkout').addEventListener('click', closeCheckoutModal);
+
+        // Initialize Leaflet Map
+        function initMap() {
+            if (map) {
+                map.invalidateSize(); // Ensure map renders correctly after unhiding
+                return;
+            }
+
+            // Coordinates for Purwokerto (Unsoed area approx)
+            const purwokertoCoords = [-7.4055, 109.2505]; 
+
+            map = L.map('map').setView(purwokertoCoords, 14);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add draggable marker
+            marker = L.marker(purwokertoCoords, {
+                draggable: true
+            }).addTo(map);
+
+            // Hide loading overlay once tiles loaded
+            map.on('load', () => {
+                document.getElementById('map-loading').style.display = 'none';
+            });
+            // Fallback to hide loading if 'load' event fires too fast
+            setTimeout(() => { document.getElementById('map-loading').style.display = 'none'; }, 1000);
+
+            // Update hidden inputs when marker is dragged
+            marker.on('dragend', function (event) {
+                const markerPos = marker.getLatLng();
+                document.getElementById('checkout-lat').value = markerPos.lat;
+                document.getElementById('checkout-lng').value = markerPos.lng;
+            });
+            
+            // Update inputs initially
+            document.getElementById('checkout-lat').value = purwokertoCoords[0];
+            document.getElementById('checkout-lng').value = purwokertoCoords[1];
+
+            // Allow clicking map to move marker
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                document.getElementById('checkout-lat').value = e.latlng.lat;
+                document.getElementById('checkout-lng').value = e.latlng.lng;
+            });
+        }
+
+        
+        // Generate WA URL for Nego
+        function generateNegoWAUrl(product) {
+            const message = `Halo admin CampusCloset, saya ingin NEGO untuk barang ini:\n\n*${product.name}*\nHarga Awal: ${formatRupiah(product.price)}\n\nSaya ingin menawar dengan harga: Rp ...`;
+            return `https://wa.me/${STORE_WA_NUMBER}?text=${encodeURIComponent(message)}`;
+        }
+
+        // Direct Buy Function (No Cart, single item checkout via WA)
+        window.buyDirectly = (productId) => {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+            
+            const message = `Halo admin CampusCloset, saya ingin BELI LANGSUNG barang ini:\n\n*${product.name}*\nHarga: ${formatRupiah(product.price)}\n\nMohon info ketersediaan dan total ongkir ke alamat saya.`;
+            window.open(`https://wa.me/${STORE_WA_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+        };
+
+        // Handle Checkout Form Submission
+        document.getElementById('checkout-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('checkout-name').value;
+            const waRaw = document.getElementById('checkout-wa').value;
+            // Clean WA number, ensure it starts with 62 or 0
+            let wa = waRaw.replace(/\D/g,'');
+            if(wa.startsWith('0')) wa = '62' + wa.substring(1);
+            else if(!wa.startsWith('62')) wa = '62' + wa;
+
+            const address = document.getElementById('checkout-address').value;
+            const details = document.getElementById('checkout-details').value;
+            const lat = document.getElementById('checkout-lat').value;
+            const lng = document.getElementById('checkout-lng').value;
+            
+            // Build Maps link
+            const mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
+
+            // Build Item List for Message
+            let orderList = '';
+            let totalPrice = 0;
+            cart.forEach((item, index) => {
+                const subtotal = item.price * item.quantity;
+                totalPrice += subtotal;
+                orderList += `${index + 1}. *${item.name}*\n   ${item.quantity} x ${formatRupiah(item.price)} = ${formatRupiah(subtotal)}\n`;
+            });
+
+            // Construct full WhatsApp Message
+            const message = `*PESANAN BARU - CAMPUSCLOSET*\n\n` +
+                            `*Halo Admin, saya ingin checkout pesanan dari keranjang:*\n\n` +
+                            `*DETAIL PEMBELI:*\n` +
+                            `👤 Nama: ${name}\n` +
+                            `📱 WA: +${wa}\n\n` +
+                            `*ALAMAT PENGIRIMAN:*\n` +
+                            `📍 Detail: ${address}\n` +
+                            `${details ? `📌 Catatan Tambahan: ${details}\n` : ''}` +
+                            `🗺️ Link Peta: ${mapLink}\n\n` +
+                            `*DAFTAR PESANAN:*\n${orderList}\n` +
+                            `*TOTAL BELANJA: ${formatRupiah(totalPrice)}*\n\n` +
+                            `(Belum termasuk ongkir, mohon ditotalkan ya min. Terima kasih!)`;
+
+            // Redirect to WhatsApp
+            window.open(`https://wa.me/${STORE_WA_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
+            
+            // Optional: Clear cart after successful checkout initiation
+            closeCheckoutModal();
+            cart = [];
+            updateCartUI();
+            
+            Swal.fire({
+                icon: 'success',
+                title: 'Dialihkan ke WhatsApp',
+                text: 'Silakan lanjutkan proses pembayaran dengan admin kami di WhatsApp.',
+                confirmButtonColor: '#25D366'
+            });
+        });
+
+        // Load initial mock data
+        products = [...initialProducts];
+        
+        // Initial Render
+        updateRoleUI(); // Initializes role UI and calls renderProducts()
+        updateCartUI();
+
+    </script>
+</body>
+</html>
